@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: "Project Scaffold"
-status: pending
+status: in-progress
 priority: P1
 dependencies: [1]
 effort: "medium"
@@ -17,7 +17,7 @@ effort: "medium"
 
 ## Overview
 
-Create the SvelteKit application structure in this repo without losing the existing demo artifacts. The scaffold should support SSR/session auth, route groups for both product surfaces, Vercel deployment, and an early Artemis visual shell so theme preservation starts before route work.
+Create the SvelteKit application structure in this repo without losing the existing demo artifacts. The scaffold should support SSR/session auth, route groups for both product surfaces, Vercel deployment, a `legacy/static-python-demo/` backup/reference folder for old demo code, and an early Artemis visual shell so theme preservation starts before route work.
 
 ## Requirements
 
@@ -27,9 +27,10 @@ Create the SvelteKit application structure in this repo without losing the exist
 - Functional: preserve current static assets as style references; ship recreated production assets under a SvelteKit-compatible static path.
 - Functional: port the global Artemis font/CSS shell and public footer placeholder early, before feature routes are fully rebuilt.
 - Functional: add `/health` and `/invocations` handlers or stubs early so deployment compatibility can be tested throughout migration.
-- Functional: define legacy runtime mode so current Python API, `/health`, and `/invocations` remain recoverable until cutover.
+- Functional: move old static/Python demo files into `legacy/static-python-demo/` after baseline capture and scaffold compatibility checks, so the old code stays easy to reference without owning the root runtime.
+- Functional: define legacy runtime mode so current Python API, `/health`, and `/invocations` remain recoverable from the backup folder until cutover.
 - Non-functional: keep implementation modular; no new Go service in this phase.
-- Non-functional: keep current demo runnable until cutover or archive point.
+- Non-functional: keep current demo runnable until cutover or backup point.
 
 ## Architecture
 
@@ -92,13 +93,15 @@ SvelteKit owns routing and server actions. Supabase client helpers are centraliz
 - Create: `/config/workspace/tiennm99/artemis-demo-agent/src/routes/health/+server.ts`
 - Create: `/config/workspace/tiennm99/artemis-demo-agent/src/routes/invocations/+server.ts`
 - Create: `/config/workspace/tiennm99/artemis-demo-agent/supabase/`
+- Create: `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/`
 - Modify: `/config/workspace/tiennm99/artemis-demo-agent/.gitignore`
 - Create: `/config/workspace/tiennm99/artemis-demo-agent/.env.example`
 - Modify: `/config/workspace/tiennm99/artemis-demo-agent/README.md`
-- Preserve until cutover: `/config/workspace/tiennm99/artemis-demo-agent/index.html`
-- Preserve until cutover: `/config/workspace/tiennm99/artemis-demo-agent/styles.css`
-- Preserve until cutover: `/config/workspace/tiennm99/artemis-demo-agent/app.js`
-- Preserve until cutover: `/config/workspace/tiennm99/artemis-demo-agent/server.py`
+- Move after baseline/scaffold checks: `/config/workspace/tiennm99/artemis-demo-agent/index.html` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/index.html`
+- Move after baseline/scaffold checks: `/config/workspace/tiennm99/artemis-demo-agent/styles.css` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/styles.css`
+- Move after baseline/scaffold checks: `/config/workspace/tiennm99/artemis-demo-agent/app.js` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/app.js`
+- Move after baseline/scaffold checks: `/config/workspace/tiennm99/artemis-demo-agent/server.py` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/server.py`
+- Move after baseline/scaffold checks: `/config/workspace/tiennm99/artemis-demo-agent/assets/` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/assets/`
 
 ## Implementation Steps
 
@@ -154,40 +157,40 @@ SvelteKit owns routing and server actions. Supabase client helpers are centraliz
 
 13. Define legacy mode in README:
    - how to run current Python/SQLite demo
-   - whether legacy files live at repo root during migration or move to `legacy/static-python-demo/`
+   - that legacy files move to `legacy/static-python-demo/` as a backup/reference folder after baseline capture and scaffold compatibility checks
    - how `/health` and `/invocations` are preserved
    - that all legacy `/api/*` routes, including `/api/state`, are retired in the production app.
 14. Update README with new local dev commands while keeping legacy demo commands until cutover.
 
 ## Todo List
 
-- [ ] SvelteKit scaffold created.
-- [ ] Vercel adapter configured.
-- [ ] Supabase SSR packages installed.
-- [ ] Route placeholders created.
-- [ ] `/health` and `/invocations` handlers or stubs created.
-- [ ] Recreated asset folder structure available in SvelteKit static path.
-- [ ] Global Artemis CSS/font/footer shell available in SvelteKit.
-- [ ] Google OAuth, admin email, and Supabase namespace env names documented.
-- [ ] `.env.example` added without secrets.
-- [ ] `.gitignore` allows env examples but ignores real env values.
-- [ ] Legacy runtime mode documented.
-- [ ] Legacy demo path preserved or explicitly archived after approval.
+- [x] SvelteKit scaffold created.
+- [x] Vercel adapter configured.
+- [x] Supabase SSR packages installed.
+- [x] Route placeholders created.
+- [x] `/health` and `/invocations` handlers or stubs created.
+- [x] Recreated asset folder structure available in SvelteKit static path.
+- [x] Global Artemis CSS/font/footer shell available in SvelteKit.
+- [x] Google OAuth, admin email, and Supabase namespace env names documented.
+- [x] `.env.example` added without secrets.
+- [x] `.gitignore` allows env examples but ignores real env values.
+- [x] Legacy runtime mode documented.
+- [x] Legacy demo files moved to `legacy/static-python-demo/` after baseline/scaffold checks, or the move is explicitly scheduled before root cutover.
 
 ## Success Criteria
 
-- [ ] `pnpm dev` starts the SvelteKit app locally.
-- [ ] `pnpm build` succeeds.
-- [ ] All planned routes render placeholder pages.
-- [ ] `/health` and `/invocations` are reachable in local SvelteKit dev mode.
-- [ ] Original assets remain available as references until recreated production assets are accepted.
-- [ ] First viewport uses the original Artemis theme assets rather than a generic placeholder.
-- [ ] Existing legacy demo remains recoverable until Phase 7.
-- [ ] Fresh checkout includes `.env.example`.
+- [x] `pnpm dev` starts the SvelteKit app locally.
+- [x] `pnpm build` succeeds.
+- [x] All planned routes render placeholder pages.
+- [x] `/health` and `/invocations` are reachable in local SvelteKit dev mode.
+- [x] Original assets remain available as references until recreated production assets are accepted.
+- [x] First viewport uses the original Artemis theme assets rather than a generic placeholder.
+- [ ] Existing legacy demo remains recoverable from `legacy/static-python-demo/` until Phase 7.
+- [x] Fresh checkout includes `.env.example`.
 
 ## Risk Assessment
 
-- Risk: root-level `index.html` conflicts with Vite/SvelteKit expectations. Mitigation: scaffold carefully and archive legacy files only after baseline capture.
+- Risk: root-level `index.html` conflicts with Vite/SvelteKit expectations. Mitigation: scaffold carefully and move legacy files to `legacy/static-python-demo/` only after baseline capture and scaffold compatibility checks.
 - Risk: env vars accidentally committed. Mitigation: commit `.env.example`, ignore `.env*` except examples.
 - Risk: mixed old/new code confuses maintainers. Mitigation: README states migration state and active dev commands.
 

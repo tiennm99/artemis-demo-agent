@@ -1,7 +1,7 @@
 ---
 title: "SvelteKit Supabase Artemis Migration"
 description: "Migrate Artemis from the static Python/SQLite demo to a SvelteKit + hosted Supabase app while preserving the original space-themed product soul."
-status: pending
+status: in-progress
 priority: P1
 branch: "main"
 tags: [refactor, frontend, backend, database, auth, infra]
@@ -26,6 +26,7 @@ This plan accepts the updated stack decision:
 - Deploy SvelteKit to Vercel.
 - Preserve the original visual soul: space vibe, radar moon, rocket, clouds, asteroid accents, care star, trade station, astronaut/galaxy language, playful Vietnamese microcopy, and the current authored Artemis feeling. Current assets are style references; production assets should be recreated with a consistent Artemis style and documented ownership.
 - Preserve `/health` and `/invocations`; retire all legacy `/api/*` routes, including `/api/state`, after cutover.
+- Move the old static/Python demo code into `legacy/static-python-demo/` as a backup/reference folder after baseline capture and scaffold compatibility are in place. Do not delete the old code during MVP migration.
 
 Primary routes:
 
@@ -91,6 +92,7 @@ Defer platform-grade features until public production pressure proves need:
 - Auth/admin bootstrap: use Supabase Google OAuth only. Domain-style profile names may remain display/business metadata, but admin roles must key to immutable `auth.users.id`, not mutable domain text.
 - Admin bootstrap: seed `minhtienit99@gmail.com` and `minhnguyetawf@gmail.com` as admins. Default both to both product scopes unless implementation explicitly scopes them differently.
 - Legacy runtime safety: existing SQLite demo data is intentionally dropped. Do not expose legacy `/api/state` in production.
+- Legacy code backup: move old root demo files into `legacy/static-python-demo/` for easy reference and rollback context after baseline capture; keep the backup out of the production path.
 - Data cutover: seed clean production-safe data; do not migrate legacy SQLite rows or base64 images.
 - API compatibility: keep `/health` and `/invocations`; retire all legacy `/api/*` routes after cutover.
 - Privacy boundary: matching can use server-only/service-role access to minimal columns, but normal user reads must remain owner/counterparty/recipient scoped.
@@ -141,11 +143,11 @@ The detailed phase files stay separate for execution detail, but the MVP should 
 
 | Wave | Goal | Phase Files | Status |
 |------|------|-------------|--------|
-| 1 | Baseline decisions, compatibility retirement, visual/style inventory, clean-start cutover | [Phase 1](./phase-01-migration-baseline.md) | Pending |
-| 2 | SvelteKit scaffold, legacy mode, early Artemis theme/assets/footer shell | [Phase 2](./phase-02-project-scaffold.md), start [Phase 5](./phase-05-theme-preservation-and-attribution.md) | Pending |
+| 1 | Baseline decisions, compatibility retirement, visual/style inventory, clean-start cutover | [Phase 1](./phase-01-migration-baseline.md) | In Progress |
+| 2 | SvelteKit scaffold, legacy backup folder, early Artemis theme/assets/footer shell | [Phase 2](./phase-02-project-scaffold.md), start [Phase 5](./phase-05-theme-preservation-and-attribution.md) | In Progress |
 | 3 | Supabase auth/data/storage namespace, private image foundation, seed data | [Phase 3](./phase-03-supabase-data-auth-storage.md) | Pending |
 | 4 | Product routes, server actions, compatibility endpoints, scoped admin pages | [Phase 4](./phase-04-domain-routes-and-server-actions.md), continue [Phase 5](./phase-05-theme-preservation-and-attribution.md) | Pending |
-| 5 | Preview deploy, focused validation, cutover, legacy archive | [Phase 6](./phase-06-deployment-and-operations.md), [Phase 7](./phase-07-validation-and-cutover.md) | Pending |
+| 5 | Preview deploy, focused validation, cutover, legacy backup verification | [Phase 6](./phase-06-deployment-and-operations.md), [Phase 7](./phase-07-validation-and-cutover.md) | Pending |
 
 ## MVP vs Hardening
 
@@ -162,6 +164,7 @@ MVP must include:
 - Separate admin routes with shared scoped admin primitives; `minhtienit99@gmail.com` and `minhnguyetawf@gmail.com` seed as admins with both scopes by default.
 - Targeted polling for notifications/admin queues.
 - Clean-start seed data; no legacy SQLite migration.
+- Old static/Python demo code backed up under `legacy/static-python-demo/` for reference; no old runtime code remains in the production path.
 - Focused unit/integration/Playwright smoke coverage.
 - Recreated production assets based on current Artemis tone/style analysis.
 
@@ -197,6 +200,7 @@ Hardening backlog:
 - Existing compatibility endpoints are tested: `/health` and `/invocations`.
 - Legacy `/api/*` routes, including `/api/state`, are absent or return an intentional retired response.
 - Clean-start cutover is documented; legacy SQLite data is intentionally dropped.
+- Old root demo files are moved into `legacy/static-python-demo/` as a readable backup/reference folder once the new app owns the root runtime.
 
 ## Decisions From User - 2026-06-23
 
@@ -209,6 +213,7 @@ Hardening backlog:
 - Scope: small production app under 5k MAU, not an overbuilt enterprise platform.
 - Admin seed emails: `minhtienit99@gmail.com` and `minhnguyetawf@gmail.com`.
 - Supabase isolation: use `artemis` namespace for production and `artemis_preview` for preview because the Supabase project may be shared with other Vercel apps.
+- Legacy code backup: old static/Python demo files should move into `legacy/static-python-demo/` for easy reference, not be deleted during MVP migration.
 
 ## Open Questions
 

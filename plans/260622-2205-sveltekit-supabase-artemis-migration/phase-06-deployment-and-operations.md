@@ -66,7 +66,7 @@ Compatibility endpoints either live in SvelteKit or are explicitly retired. Prod
 - Modify: `/config/workspace/tiennm99/artemis-demo-agent/package.json`
 - Modify: `/config/workspace/tiennm99/artemis-demo-agent/README.md`
 - Modify: `/config/workspace/tiennm99/artemis-demo-agent/.gitignore`
-- Read: `/config/workspace/tiennm99/artemis-demo-agent/Dockerfile`
+- Read or move with legacy backup: `/config/workspace/tiennm99/artemis-demo-agent/Dockerfile` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/Dockerfile`
 
 ## Implementation Steps
 
@@ -125,9 +125,9 @@ Compatibility endpoints either live in SvelteKit or are explicitly retired. Prod
    - `GET /health`
    - `POST /invocations`
    - legacy `/api/*` routes are absent or return intentional retired responses.
-8. Decide Docker fate:
-   - keep Dockerfile only for legacy AgentBase demo until cutover, or
-   - replace with SvelteKit container only if self-host preview needed.
+8. Document Docker fate:
+   - move the old Python/SQLite demo Dockerfile into `legacy/static-python-demo/Dockerfile` with the rest of the backup/reference code
+   - create a new SvelteKit container only if self-host preview becomes needed.
 
 ## Todo List
 
@@ -141,7 +141,7 @@ Compatibility endpoints either live in SvelteKit or are explicitly retired. Prod
 - [ ] Small-production abuse controls enforced in code/schema or explicitly deferred with risk accepted.
 - [ ] Deployment guide created.
 - [ ] Compatibility endpoints included in deployment smoke checks.
-- [ ] Legacy Docker path documented or archived.
+- [ ] Legacy Dockerfile path documented under `legacy/static-python-demo/`.
 
 ## Success Criteria
 

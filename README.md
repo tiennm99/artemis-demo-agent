@@ -66,8 +66,31 @@ API routes:
 
 ## Chạy local
 
+SvelteKit app mới:
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Sau đó mở:
+
+```text
+http://127.0.0.1:5173/
+```
+
+Kiểm tra scaffold:
+
+```bash
+pnpm check
+pnpm test
+pnpm build
+```
+
+Legacy Python/SQLite demo vẫn còn ở root trong giai đoạn scaffold:
+
 ```powershell
-python server.py
+python3 server.py
 ```
 
 Sau đó mở:
@@ -75,6 +98,8 @@ Sau đó mở:
 ```text
 http://127.0.0.1:8080/
 ```
+
+Sau khi baseline và compatibility của SvelteKit ổn, code demo cũ sẽ được chuyển vào `legacy/static-python-demo/` để backup và dễ reference. Production SvelteKit chỉ giữ `/health` và `/invocations`; các legacy `/api/*`, gồm `/api/state`, sẽ bị retire.
 
 ## Build Docker
 

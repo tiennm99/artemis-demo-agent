@@ -1,7 +1,7 @@
 ---
 phase: 1
 title: "Migration Baseline"
-status: pending
+status: in-progress
 priority: P1
 dependencies: []
 effort: "medium"
@@ -32,7 +32,7 @@ This phase is read-heavy. Implementation should avoid moving/deleting current fi
 - Functional: document every current HTTP/runtime contract: `/health`, `/invocations`, `/api/state`, `/api/auth/login`, `/api/lost-items`, `/api/found-items`, `/api/marketplace-items`, `/api/notifications`, `/api/matches/:id`, and admin patch routes.
 - Functional: capture visual invariants: moon radar, rocket, cloud cards, asteroid accents, care star, trade station, dark galaxy surface, custom font, Vietnamese tone, footer attribution, and the astronaut motif decision.
 - Non-functional: define the migration as behavior-preserving first, architectural cleanup second.
-- Non-functional: explicitly drop existing SQLite demo data for production; preserve only behavior/style knowledge and optional archived demo provenance.
+- Non-functional: explicitly drop existing SQLite demo data for production; preserve behavior/style knowledge and back up old demo code under `legacy/static-python-demo/` for easy later reference.
 
 ## Architecture
 
@@ -63,7 +63,7 @@ For production cutover:
   2. Do not expose legacy `POST /api/state`.
   3. Retire all legacy `/api/*` routes.
   4. Seed only production-safe starter rows required for smoke tests.
-  5. Archive old runtime files for provenance until cutover is accepted.
+  5. Move old runtime files into `legacy/static-python-demo/` as a backup/reference folder after baseline capture and scaffold compatibility are in place.
 ```
 
 ## Related Code Files
@@ -123,9 +123,10 @@ For production cutover:
    - current footer attribution expectation
    - line style, texture, color, depth, cutout style, glow, shadows, and motion language needed to recreate all production assets.
 7. Define parity smoke paths that must pass after migration, including two-browser freshness for match notifications and admin pending queues.
-8. Decide temporary legacy strategy:
-   - keep a separate branch/worktree for the Python demo, or
-   - archive under `legacy/static-python-demo/` only after SvelteKit routes and compatibility handlers pass.
+8. Set the temporary legacy strategy:
+   - move old root demo files into `legacy/static-python-demo/` after baseline capture and after SvelteKit routes plus compatibility handlers pass
+   - keep the folder readable as backup/reference material until cutover is accepted
+   - keep it out of the production route/runtime path.
 9. Document known demo-only behaviors that must not survive as production behavior:
    - localStorage auth fallback
    - hardcoded admin domain only
@@ -146,31 +147,33 @@ For production cutover:
 
 ## Todo List
 
-- [ ] Current flow inventory completed.
-- [ ] Current data shape mapped to proposed tables.
-- [ ] Current HTTP/runtime compatibility matrix completed.
-- [ ] Clean-start data/drop policy documented.
-- [ ] Visual identity inventory completed.
-- [ ] Auth/admin bootstrap decision gate documented.
-- [ ] Supabase namespace decision documented.
-- [ ] Migration baseline doc created.
+- [x] Current flow inventory completed.
+- [x] Current data shape mapped to proposed tables.
+- [x] Current HTTP/runtime compatibility matrix completed.
+- [x] Clean-start data/drop policy documented.
+- [x] Visual identity inventory completed.
+- [x] Auth/admin bootstrap decision gate documented.
+- [x] Supabase namespace decision documented.
+- [x] Legacy backup folder decision documented: old demo code moves to `legacy/static-python-demo/` for reference.
+- [x] Migration baseline doc created.
 - [ ] Parity smoke checklist approved.
 
 ## Success Criteria
 
-- [ ] Baseline doc exists and lists all current user/admin flows.
-- [ ] Every current API object maps to a target Supabase table, seed value, or explicit deprecated field.
-- [ ] Every current runtime contract is marked keep or retire.
+- [x] Baseline doc exists and lists all current user/admin flows.
+- [x] Every current API object maps to a target Supabase table, seed value, or explicit deprecated field.
+- [x] Every current runtime contract is marked keep or retire.
 - [ ] Legacy `/api/state` import cannot exist in production.
-- [ ] Visual preservation checklist names required motifs, recreated assets, font decision, animation, copy tone, and footer attribution.
+- [x] Visual preservation checklist names required motifs, recreated assets, font decision, animation, copy tone, and footer attribution.
 - [ ] Baseline screenshots exist for login/account, first viewport, moon/radar, marketplace cloud cards, listing wizard, notification panel, footer, mobile, and both admin routes.
-- [ ] Implementation can proceed without guessing which current behaviors matter.
+- [x] Legacy backup path is explicit, with old static/Python demo files planned for `legacy/static-python-demo/` rather than deletion.
+- [x] Implementation can proceed without guessing which current behaviors matter.
 
 ## Risk Assessment
 
 - Risk: rewrite accidentally removes charm and becomes generic. Mitigation: visual inventory becomes acceptance criteria in Phase 5.
 - Risk: current data shape hidden in large `app.js`. Mitigation: map both frontend object fields and backend table payloads.
-- Risk: `/api/state` can overwrite SQLite during coexistence. Mitigation: do not implement it in the new production app; archive legacy runtime only after cutover acceptance.
+- Risk: `/api/state` can overwrite SQLite during coexistence. Mitigation: do not implement it in the new production app; move legacy runtime into `legacy/static-python-demo/` only after baseline capture and scaffold compatibility are ready.
 - Risk: too much legacy behavior preserved. Mitigation: label security/demo shortcuts as deprecated.
 
 ## Security Considerations

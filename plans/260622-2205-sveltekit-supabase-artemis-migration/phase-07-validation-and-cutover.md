@@ -17,7 +17,7 @@ effort: "high"
 
 ## Overview
 
-Validate the migrated SvelteKit/Supabase app against current Artemis behavior, security expectations, recreated visual identity, clean-start data policy, and deploy readiness. Cut over only after the focused MVP smoke gates pass and the old demo is archived safely.
+Validate the migrated SvelteKit/Supabase app against current Artemis behavior, security expectations, recreated visual identity, clean-start data policy, and deploy readiness. Cut over only after the focused MVP smoke gates pass and the old demo code is backed up safely under `legacy/static-python-demo/`.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ Validate the migrated SvelteKit/Supabase app against current Artemis behavior, s
 - Functional: verify footer attribution and original visual identity.
 - Functional: seed clean starter data intentionally; do not migrate SQLite demo data.
 - Functional: verify retained compatibility endpoints and any explicitly retired legacy routes.
-- Non-functional: old Python/SQLite runtime remains recoverable until new app is accepted.
+- Non-functional: old Python/SQLite runtime remains recoverable from `legacy/static-python-demo/` until new app is accepted.
 - Non-functional: final README reflects the active stack.
 
 ## Architecture
@@ -51,7 +51,7 @@ Compatibility smoke
   /health, /invocations, retired legacy /api/* routes
 
 Clean-start verification
-  no SQLite import, seed rows only, legacy runtime archived, rollback known
+  no SQLite import, seed rows only, legacy runtime backed up in legacy/static-python-demo, rollback known
 ```
 
 Cutover path:
@@ -60,7 +60,7 @@ Cutover path:
 Current demo remains available
   -> new SvelteKit app passes validation
   -> README/deployment docs updated
-  -> old root files archived or removed by explicit implementation decision
+  -> old root files moved into legacy/static-python-demo for backup/reference
 ```
 
 ## Related Code Files
@@ -73,12 +73,14 @@ Current demo remains available
 - Create: `/config/workspace/tiennm99/artemis-demo-agent/src/lib/server/domain/lost-found/matching.test.ts`
 - Create: `/config/workspace/tiennm99/artemis-demo-agent/src/lib/server/domain/marketplace/ranking.test.ts`
 - Create: `/config/workspace/tiennm99/artemis-demo-agent/docs/cutover-checklist.md`
+- Create or verify: `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/`
 - Modify: `/config/workspace/tiennm99/artemis-demo-agent/README.md`
-- Modify or archive: `/config/workspace/tiennm99/artemis-demo-agent/index.html`
-- Modify or archive: `/config/workspace/tiennm99/artemis-demo-agent/styles.css`
-- Modify or archive: `/config/workspace/tiennm99/artemis-demo-agent/app.js`
-- Modify or archive: `/config/workspace/tiennm99/artemis-demo-agent/server.py`
-- Modify or archive: `/config/workspace/tiennm99/artemis-demo-agent/Dockerfile`
+- Move if not already moved: `/config/workspace/tiennm99/artemis-demo-agent/index.html` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/index.html`
+- Move if not already moved: `/config/workspace/tiennm99/artemis-demo-agent/styles.css` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/styles.css`
+- Move if not already moved: `/config/workspace/tiennm99/artemis-demo-agent/app.js` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/app.js`
+- Move if not already moved: `/config/workspace/tiennm99/artemis-demo-agent/server.py` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/server.py`
+- Move if not already moved: `/config/workspace/tiennm99/artemis-demo-agent/Dockerfile` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/Dockerfile`
+- Move if not already moved: `/config/workspace/tiennm99/artemis-demo-agent/assets/` -> `/config/workspace/tiennm99/artemis-demo-agent/legacy/static-python-demo/assets/`
 
 ## Implementation Steps
 
@@ -139,7 +141,7 @@ Current demo remains available
    - no legacy rows or base64 images are imported
    - seed only the approved admin/profile rows needed for smoke tests
    - legacy `/api/state` is not deployed
-   - old runtime files remain archived/recoverable until acceptance
+   - old runtime files live in `legacy/static-python-demo/` and remain recoverable until acceptance
    - rollback path is documented.
 8. Run validation gates:
 
@@ -164,11 +166,12 @@ Current demo remains available
    - preview deployment checked
    - compatibility endpoints checked
    - clean-start data decision recorded
-   - old demo archived/recoverable
+   - old demo backed up under `legacy/static-python-demo/` and recoverable
    - rollback path known.
-12. Archive or remove legacy files only after validation:
-   - preferred: move to `legacy/static-python-demo/` if useful for provenance
-   - acceptable: delete after git history and docs preserve context.
+12. Move legacy files only after validation if Phase 2 did not already do it:
+   - move old root demo files to `legacy/static-python-demo/`
+   - keep a short folder note or README with the old demo run command
+   - do not delete the backup during MVP migration.
 
 ## Todo List
 
@@ -186,7 +189,7 @@ Current demo remains available
 - [ ] Build/check/test commands pass.
 - [ ] README updated to new stack.
 - [ ] Cutover checklist created.
-- [ ] Legacy runtime archived or intentionally removed.
+- [ ] Legacy runtime backed up under `legacy/static-python-demo/` and kept out of the production path.
 
 ## Success Criteria
 
@@ -200,14 +203,15 @@ Current demo remains available
 - [ ] Recreated Artemis assets preserve the original theme in screenshots, or differences are explicitly accepted before cutover.
 - [ ] Deployment docs and rollback path are clear.
 - [ ] No SQLite/Python runtime remains in the production path.
+- [ ] Old static/Python demo code remains readable under `legacy/static-python-demo/` for later reference.
 - [ ] Legacy data is intentionally dropped with explicit acceptance and rollback documented.
 
 ## Risk Assessment
 
 - Risk: tests depend on external Supabase state. Mitigation: use isolated test project, seed data, or local Supabase for repeatable runs.
 - Risk: visual acceptance is subjective. Mitigation: compare baseline screenshots and require explicit acceptance of intentional changes.
-- Risk: old runtime removed too early. Mitigation: archive after new deployment passes and README points to active stack.
-- Risk: clean-start accidentally loses needed demo knowledge. Mitigation: preserve behavior/style baseline docs and archive legacy runtime until acceptance.
+- Risk: old runtime removed too early. Mitigation: move it into `legacy/static-python-demo/` after validation and do not delete during MVP migration.
+- Risk: clean-start accidentally loses needed demo knowledge. Mitigation: preserve behavior/style baseline docs and keep legacy runtime backed up under `legacy/static-python-demo/` until acceptance.
 - Risk: shared Supabase namespace leaks data across projects. Mitigation: schema-qualified queries, private buckets, RLS negative tests, and no public image URLs.
 
 ## Security Considerations
