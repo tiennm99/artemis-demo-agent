@@ -143,11 +143,11 @@ The detailed phase files stay separate for execution detail, but the MVP should 
 
 | Wave | Goal | Phase Files | Status |
 |------|------|-------------|--------|
-| 1 | Baseline decisions, compatibility retirement, visual/style inventory, clean-start cutover | [Phase 1](./phase-01-migration-baseline.md) | In Progress |
-| 2 | SvelteKit scaffold, legacy backup folder, early Artemis theme/assets/footer shell | [Phase 2](./phase-02-project-scaffold.md), start [Phase 5](./phase-05-theme-preservation-and-attribution.md) | In Progress |
-| 3 | Supabase auth/data/storage namespace, private image foundation, seed data | [Phase 3](./phase-03-supabase-data-auth-storage.md) | Pending |
-| 4 | Product routes, server actions, compatibility endpoints, scoped admin pages | [Phase 4](./phase-04-domain-routes-and-server-actions.md), continue [Phase 5](./phase-05-theme-preservation-and-attribution.md) | Pending |
-| 5 | Preview deploy, focused validation, cutover, legacy backup verification | [Phase 6](./phase-06-deployment-and-operations.md), [Phase 7](./phase-07-validation-and-cutover.md) | Pending |
+| 1 | Baseline decisions, compatibility retirement, visual/style inventory, clean-start cutover | [Phase 1](./phase-01-migration-baseline.md) | Completed |
+| 2 | SvelteKit scaffold, legacy backup folder, early Artemis theme/assets/footer shell | [Phase 2](./phase-02-project-scaffold.md), start [Phase 5](./phase-05-theme-preservation-and-attribution.md) | Completed |
+| 3 | Supabase auth/data/storage namespace, private image foundation, seed data | [Phase 3](./phase-03-supabase-data-auth-storage.md) | Implemented Locally; Apply Pending |
+| 4 | Product routes, server actions, compatibility endpoints, scoped admin pages | [Phase 4](./phase-04-domain-routes-and-server-actions.md), continue [Phase 5](./phase-05-theme-preservation-and-attribution.md) | Implemented Locally |
+| 5 | Preview deploy, focused validation, cutover, legacy backup verification | [Phase 6](./phase-06-deployment-and-operations.md), [Phase 7](./phase-07-validation-and-cutover.md) | Local Validation Passed; External Deploy Pending |
 
 ## MVP vs Hardening
 
@@ -215,9 +215,15 @@ Hardening backlog:
 - Supabase isolation: use `artemis` namespace for production and `artemis_preview` for preview because the Supabase project may be shared with other Vercel apps.
 - Legacy code backup: old static/Python demo files should move into `legacy/static-python-demo/` for easy reference, not be deleted during MVP migration.
 
+## Implementation Report
+
+- Latest cook report: [cook-2026-06-23-implementation-report.md](./reports/cook-2026-06-23-implementation-report.md)
+
 ## Open Questions
 
-- None before implementation.
+- Final production asset recreation/licensing owner.
+- Production Vercel/Supabase plan choice.
+- Whether daily abuse caps must be DB-enforced before launch or can remain hardening.
 
 ## Red Team Review
 

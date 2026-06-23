@@ -1,7 +1,7 @@
 ---
 phase: 2
 title: "Project Scaffold"
-status: in-progress
+status: completed
 priority: P1
 dependencies: [1]
 effort: "medium"
@@ -18,6 +18,14 @@ effort: "medium"
 ## Overview
 
 Create the SvelteKit application structure in this repo without losing the existing demo artifacts. The scaffold should support SSR/session auth, route groups for both product surfaces, Vercel deployment, a `legacy/static-python-demo/` backup/reference folder for old demo code, and an early Artemis visual shell so theme preservation starts before route work.
+
+## Cook Status - 2026-06-23
+
+Completed locally:
+
+- SvelteKit scaffold, Vercel adapter, route structure, health/invocations endpoints.
+- Legacy static/Python/Docker/assets moved to `legacy/static-python-demo/`.
+- Reference assets available under `static/assets/artemis/reference/`.
 
 ## Requirements
 

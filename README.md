@@ -1,85 +1,77 @@
-# Vũ trụ đồ đạc - Phiên chợ trên mây
+# Artemis
 
-Artemis là demo AI agent theo theme vũ trụ dành cho Starter tại VNG. Agent giúp Starter gửi tín hiệu tìm đồ thất lạc, trả lại đồ nhặt được, nhận thông báo khi có tín hiệu phù hợp, và pass lại đồ cũ qua khu "Phiên chợ trên mây".
+Artemis is a SvelteKit + Supabase app for two internal Starter flows:
 
-## Vấn đề
+- `Vũ trụ đồ đạc`: lost/found signals, radar matching, notifications.
+- `Phiên chợ trên mây`: marketplace listings, care stars, scoped moderation.
 
-Hiện tại VNG chưa có một platform hoặc channel chính thống dành riêng cho việc tìm và trả đồ thất lạc. Khi một Starter làm mất hoặc nhặt được đồ, thông tin thường bị phân tán ở chat cá nhân, nhóm nhỏ, hoặc các bài đăng rời rạc. Vì vậy người mất khó biết ai đang giữ món đồ, còn người nhặt được cũng khó tìm đúng chủ nhân.
+The old static Python/SQLite demo is kept only as backup/reference under `legacy/static-python-demo/`.
 
-Artemis đóng vai trò như một radar nội bộ: ghi nhận tín hiệu, lưu thông tin trong phiên demo, dò các tín hiệu gần giống nhau và gợi ý contact point để hai bên kết nối nhanh hơn.
+## Stack
 
-## Live endpoint
+- SvelteKit on Vercel
+- Supabase Auth with Google OAuth only
+- Supabase Postgres schemas: `artemis` and `artemis_preview`
+- Private Supabase Storage buckets for report/listing images
+- Server-side SvelteKit actions for mutations
 
-https://endpoint-0f7feba7-a302-4a7b-91f5-5b49b2a6fc36.agentbase-runtime.aiplatform.vngcloud.vn/
-
-Health check:
-
-```text
-https://endpoint-0f7feba7-a302-4a7b-91f5-5b49b2a6fc36.agentbase-runtime.aiplatform.vngcloud.vn/health
-```
-
-Image dùng cho bản nộp:
+## Routes
 
 ```text
-docker.io/iamminhnguyet/artemis-starter-galaxy:backend-v17
+/
+/account
+/vutrudodac
+/phienchotrenmay
+/vutrudodac/admin
+/phienchotrenmay/admin
+/health
+/invocations
 ```
 
-## Tính năng chính
+Legacy `/api/*`, including `/api/state`, is intentionally retired and returns `410`.
 
-- Đăng nhập bằng domain để Artemis ghi nhớ tín hiệu theo từng Starter.
-- Flow tìm đồ thất lạc: Starter mô tả món đồ, nhập thời gian mất và có thể đính kèm ảnh.
-- Flow trả lại đồ bị mất: Starter mô tả món đồ, nhập thời gian nhặt được, vị trí nhặt được và có thể đính kèm ảnh.
-- Radar match theo mô tả món đồ, thời gian và tín hiệu ảnh.
-- Nếu match chính xác hoặc gần giống, Artemis trả contact point ngay trên mặt trăng radar và lưu vào ô thông báo.
-- Ô thông báo chia nhóm để dễ theo dõi tín hiệu radar và hoạt động chợ.
-- Dashboard quản trị giúp xem tổng quan tín hiệu tìm/trả đồ, duyệt vật phẩm, chỉnh sửa, ẩn/hiện vật phẩm khi cần.
-- Phiên chợ trên mây cho Starter pass lại đồ cũ, có ảnh sản phẩm, mô tả, giá, contact, trạng thái còn hàng/đã pass và số lượt quan tâm.
-- Flow đăng vật phẩm dạng chat: Artemis hỏi từng câu rồi tự đưa thông tin vào template vật phẩm.
-- Thanh tìm kiếm trong Phiên chợ trên mây: Starter nhập món cần mua, Artemis đẩy các món phù hợp lên đầu.
-
-## Cách hoạt động
-
-Frontend được viết bằng HTML, CSS và JavaScript thuần. Runtime AgentBase dùng server Python nhỏ để phục vụ giao diện và health check.
-
-Dữ liệu submission hiện được lưu qua backend SQLite để nhiều user và nhiều trình duyệt cùng thấy tín hiệu lost/found, marketplace và trạng thái duyệt. Trình duyệt vẫn giữ bản lưu tạm để giao diện không bị gãy khi backend tạm thời chưa kết nối được.
-
-Runtime hỗ trợ:
-
-- `GET /` mở giao diện Artemis.
-- `GET /health` trả trạng thái health check cho runtime.
-- `POST /invocations` là endpoint tương thích để AgentBase gọi khi cần.
-
-## Backend persistence
-
-Artemis lưu dữ liệu dùng chung bằng SQLite thông qua `server.py`. Mặc định file database nằm ở `.artemis-data/artemis.db` trong thư mục project. Khi deploy AgentBase nên đặt `ARTEMIS_DB=/tmp/artemis-data/artemis.db`; nếu muốn dùng đường dẫn khác, cấu hình biến môi trường `ARTEMIS_DB`.
-
-API routes:
-
-- `POST /api/lost-items`, `GET /api/lost-items`
-- `POST /api/found-items`, `GET /api/found-items`
-- `POST /api/marketplace-items`, `GET /api/marketplace-items?status=approved`
-- `GET /api/admin/marketplace-items?status=pending`
-- `PATCH /api/admin/marketplace-items/:id/approve`
-- `PATCH /api/admin/marketplace-items/:id/reject`
-- `GET /api/matches/:itemId`
-- `GET /api/state`, `POST /api/state` vẫn được giữ để tương thích ngược.
-
-## Chạy local
-
-SvelteKit app mới:
+## Local
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Sau đó mở:
+Open:
 
 ```text
 http://127.0.0.1:5173/
 ```
 
-Kiểm tra scaffold:
+Without Supabase env vars, the app uses a local in-memory dev fallback. This is only for development.
+
+## Environment
+
+Copy `.env.example` to local env if using Supabase:
+
+```text
+PUBLIC_SUPABASE_URL=
+PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+ARTEMIS_ENV=preview
+ARTEMIS_SUPABASE_SCHEMA=artemis_preview
+ARTEMIS_AUTH_PROVIDER=google
+ARTEMIS_ADMIN_EMAILS=minhtienit99@gmail.com,minhnguyetawf@gmail.com
+ARTEMIS_STORAGE_BUCKET_PREFIX=artemis_preview
+```
+
+## Supabase
+
+Apply:
+
+```text
+supabase/migrations/202606230001_artemis_core.sql
+supabase/seed.sql
+```
+
+Run `seed.sql` only after the two admin Google accounts signed in once.
+
+## Validate
 
 ```bash
 pnpm check
@@ -87,99 +79,19 @@ pnpm test
 pnpm build
 ```
 
-Legacy Python/SQLite demo vẫn còn ở root trong giai đoạn scaffold:
+`pnpm test:e2e` is available for Playwright smoke coverage, but the current migration pass does not require running it.
 
-```powershell
-python3 server.py
-```
+## Docs
 
-Sau đó mở:
+- `docs/deployment-guide.md`
+- `docs/cutover-checklist.md`
+- `docs/design-guidelines.md`
+- `docs/migration-behavior-baseline.md`
 
-```text
-http://127.0.0.1:8080/
-```
+## Attribution
 
-Sau khi baseline và compatibility của SvelteKit ổn, code demo cũ sẽ được chuyển vào `legacy/static-python-demo/` để backup và dễ reference. Production SvelteKit chỉ giữ `/health` và `/invocations`; các legacy `/api/*`, gồm `/api/state`, sẽ bị retire.
-
-## Build Docker
-
-```bash
-docker build --platform linux/amd64 -t artemis-starter-galaxy:latest .
-```
-
-Build và push image đang deploy:
-
-```powershell
-docker build --platform linux/amd64 -t artemis-starter-galaxy:backend-v17 .
-docker tag artemis-starter-galaxy:backend-v17 iamminhnguyet/artemis-starter-galaxy:backend-v17
-docker push iamminhnguyet/artemis-starter-galaxy:backend-v17
-```
-
-Image dùng cho AgentBase:
+Footer must keep:
 
 ```text
-docker.io/iamminhnguyet/artemis-starter-galaxy:backend-v17
+Made by miti99 (miti99.com) from artemis (iamminhnguyet.com) idea, with <3
 ```
-
-Biến môi trường khuyến nghị cho AgentBase:
-
-```text
-PORT=8080
-ARTEMIS_DB=/tmp/artemis-data/artemis.db
-```
-
-## Upload lên GitHub
-
-Các file/thư mục nên commit:
-
-```text
-index.html
-styles.css
-app.js
-server.py
-Dockerfile
-README.md
-.gitignore
-.dockerignore
-assets/
-```
-
-Không commit file/thư mục local/runtime:
-
-```text
-.artemis-data/
-__pycache__/
-*.db
-*.db-journal
-*.db-wal
-*.db-shm
-*.tmp
-write-test.tmp
-.env
-.agentbase/
-.claude/
-.docker-codex/
-submission-guide.docx
-submission-guide.txt
-app-v2.js
-proxy.py
-greennode-agentbase-skills-main/
-artemis-vu-tru-do-dac-cho-troi-vng/
-```
-
-## Cấu trúc project
-
-```text
-index.html      Giao diện chính
-styles.css      Styling theme vũ trụ, mặt trăng, phiên chợ và dashboard
-app.js          Logic chat flow, radar matching, thông báo, marketplace và dashboard
-server.py       Server runtime cho AgentBase
-Dockerfile      Cấu hình container image
-assets/         Hình ảnh, font và visual assets
-```
-
-## Ghi chú demo
-
-Người dùng có thể đăng nhập bằng domain-style username bất kỳ, ví dụ `nguyetntm5`.
-
-Đây là bản hackathon demo tập trung vào trải nghiệm agent, giao diện, flow tìm/trả đồ và phiên chợ nội bộ. Bản production nên bổ sung backend database, phân quyền thật, và kênh thông báo nội bộ như email hoặc MS Teams.

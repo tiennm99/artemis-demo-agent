@@ -1,7 +1,7 @@
 ---
 phase: 7
 title: "Validation And Cutover"
-status: pending
+status: in-progress
 priority: P1
 dependencies: [1, 2, 3, 4, 5, 6]
 effort: "high"
@@ -18,6 +18,22 @@ effort: "high"
 ## Overview
 
 Validate the migrated SvelteKit/Supabase app against current Artemis behavior, security expectations, recreated visual identity, clean-start data policy, and deploy readiness. Cut over only after the focused MVP smoke gates pass and the old demo code is backed up safely under `legacy/static-python-demo/`.
+
+## Cook Status - 2026-06-23
+
+Local validation passed:
+
+- `pnpm check`
+- `pnpm test`
+- `pnpm build`
+- Legacy runtime moved into `legacy/static-python-demo/`.
+- Cutover checklist created at `docs/cutover-checklist.md`.
+
+Pending:
+
+- Playwright/e2e smoke when user wants browser automation.
+- Hosted Supabase/Vercel smoke.
+- Visual screenshot pass.
 
 ## Requirements
 

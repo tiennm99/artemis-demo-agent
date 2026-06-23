@@ -1,7 +1,7 @@
 ---
 phase: 1
 title: "Migration Baseline"
-status: in-progress
+status: completed
 priority: P1
 dependencies: []
 effort: "medium"
@@ -24,6 +24,14 @@ effort: "medium"
 Freeze the current Artemis behavior before replacing the runtime. Capture the product flows, visual identity, data contracts, and demo quirks so the SvelteKit migration preserves what users already feel while intentionally starting production data clean.
 
 This phase is read-heavy. Implementation should avoid moving/deleting current files until snapshots and parity expectations exist.
+
+## Cook Status - 2026-06-23
+
+Completed locally:
+
+- Baseline behavior doc exists at `docs/migration-behavior-baseline.md`.
+- Clean-start decision retained.
+- Legacy runtime moved only after SvelteKit scaffold and local validation passed.
 
 ## Requirements
 

@@ -1,7 +1,7 @@
 ---
 phase: 6
 title: "Deployment And Operations"
-status: pending
+status: in-progress
 priority: P2
 dependencies: [2, 3, 4, 5]
 effort: "medium"
@@ -18,6 +18,22 @@ effort: "medium"
 ## Overview
 
 Prepare the SvelteKit + Supabase app for Vercel preview and small-production deployment. For under 5k MAU, keep this phase focused on deployability, env docs, basic enforced caps, private storage, namespace isolation, and rollback notes. Keep self-hosting possible later, but do not take on self-hosted operations in this migration.
+
+## Cook Status - 2026-06-23
+
+Implemented locally:
+
+- Vercel adapter already configured.
+- Build/check/test scripts present.
+- `.env.example` updated.
+- Deployment guide created at `docs/deployment-guide.md`.
+- Small image limits implemented in server storage helper.
+
+Pending external deploy:
+
+- Configure Vercel env vars.
+- Apply Supabase migrations.
+- Run preview smoke against hosted services.
 
 ## Requirements
 

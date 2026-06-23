@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: "Supabase Data Auth Storage"
-status: pending
+status: in-progress
 priority: P1
 dependencies: [1, 2]
 effort: "high"
@@ -20,6 +20,23 @@ effort: "high"
 ## Overview
 
 Replace SQLite JSON payload storage with namespaced Supabase schemas, Google OAuth session handling, scoped admin roles, lightweight admin action logging, private object storage for images, and clean seed data.
+
+## Cook Status - 2026-06-23
+
+Implemented locally:
+
+- Supabase SSR/service clients and Google-only verified session enforcement.
+- Admin bootstrap helper using `ARTEMIS_ADMIN_EMAILS`.
+- Migration SQL for `artemis` and `artemis_preview`.
+- Clean seed SQL for admin roles after first Google sign-in.
+- Private bucket names and server-mediated image validation/upload helper.
+- Repository boundary with local in-memory fallback when Supabase env vars are absent.
+
+Pending external apply:
+
+- Run migration/seed against hosted Supabase.
+- Verify RLS/storage policies in the real Supabase project.
+- Confirm private image upload with production buckets.
 
 ## Requirements
 

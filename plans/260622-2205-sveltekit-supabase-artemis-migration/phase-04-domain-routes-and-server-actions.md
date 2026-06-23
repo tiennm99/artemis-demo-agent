@@ -1,7 +1,7 @@
 ---
 phase: 4
 title: "Domain Routes And Server Actions"
-status: pending
+status: implemented-local
 priority: P1
 dependencies: [2, 3]
 effort: "high"
@@ -18,6 +18,24 @@ effort: "high"
 ## Overview
 
 Rebuild the current Artemis user flows as SvelteKit route groups and server actions. Keep the product split clear: `vutrudodac` owns lost/found/radar, `phienchotrenmay` owns marketplace.
+
+## Cook Status - 2026-06-23
+
+Implemented locally:
+
+- `/account` Google OAuth actions and local-dev auth display.
+- `/vutrudodac` lost/found forms, match radar, notifications.
+- `/phienchotrenmay` search/rank listing view, create listing, care toggle.
+- `/vutrudodac/admin` scoped queue and report status actions.
+- `/phienchotrenmay/admin` scoped listing moderation actions.
+- `/api/*` retired handler returning `410`.
+- `/health` and `/invocations` preserved.
+
+Pending external validation:
+
+- Google OAuth redirect in hosted Supabase.
+- Two-browser freshness smoke.
+- Hosted admin role checks against seeded Supabase users.
 
 ## Requirements
 
