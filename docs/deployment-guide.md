@@ -43,8 +43,8 @@ Use Vercel project env vars. Do not commit real `.env` files.
 ## Local
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 Without Supabase env vars, Artemis uses a local in-memory fallback user for development only.
@@ -62,9 +62,9 @@ ARTEMIS_STORAGE_BUCKET_PREFIX=artemis_preview
 Run smoke:
 
 ```bash
-pnpm check
-pnpm test
-pnpm build
+npm run check
+npm test
+npm run build
 ```
 
 Check:

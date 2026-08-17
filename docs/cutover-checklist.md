@@ -7,9 +7,9 @@
 - [ ] Preview private buckets exist.
 - [ ] Google OAuth redirect URL points to preview `/account`.
 - [ ] Vercel preview env vars configured.
-- [ ] `pnpm check` passes.
-- [ ] `pnpm test` passes.
-- [ ] `pnpm build` passes.
+- [ ] `npm run check` passes.
+- [ ] `npm test` passes.
+- [ ] `npm run build` passes.
 
 ## Before Production
 

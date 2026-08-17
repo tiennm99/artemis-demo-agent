@@ -33,8 +33,8 @@ Legacy `/api/*`, including `/api/state`, is intentionally retired and returns `4
 ## Local
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 Open:
@@ -74,12 +74,12 @@ Run `seed.sql` only after the two admin Google accounts signed in once.
 ## Validate
 
 ```bash
-pnpm check
-pnpm test
-pnpm build
+npm run check
+npm test
+npm run build
 ```
 
-`pnpm test:e2e` is available for Playwright smoke coverage, but the current migration pass does not require running it.
+`npm run test:e2e` is available for Playwright smoke coverage, but the current migration pass does not require running it.
 
 ## Docs
 
