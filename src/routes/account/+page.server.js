@@ -1,8 +1,8 @@
 import { redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
 import { createSupabaseServerClient, hasSupabaseConfig } from '$lib/server/supabase/client';
 
-export const load: PageServerLoad = ({ locals, url }) => {
+/** @type {import('./$types').PageServerLoad} */
+export const load = ({ locals, url }) => {
   return {
     user: locals.user,
     reason: url.searchParams.get('reason'),
@@ -10,7 +10,8 @@ export const load: PageServerLoad = ({ locals, url }) => {
   };
 };
 
-export const actions: Actions = {
+/** @type {import('./$types').Actions} */
+export const actions = {
   signIn: async (event) => {
     if (!hasSupabaseConfig()) {
       throw redirect(303, '/account');

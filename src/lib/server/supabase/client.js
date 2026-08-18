@@ -1,6 +1,5 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
-import type { RequestEvent } from '@sveltejs/kit';
 import { env as privateEnv } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
 
@@ -16,7 +15,8 @@ export function hasSupabaseServiceConfig() {
   return Boolean(publicEnv.PUBLIC_SUPABASE_URL && privateEnv.SUPABASE_SERVICE_ROLE_KEY);
 }
 
-export function createSupabaseServerClient(event: RequestEvent) {
+/** @param {import('@sveltejs/kit').RequestEvent} event */
+export function createSupabaseServerClient(event) {
   const supabaseUrl = publicEnv.PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = publicEnv.PUBLIC_SUPABASE_ANON_KEY;
 
@@ -27,7 +27,8 @@ export function createSupabaseServerClient(event: RequestEvent) {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll: () => event.cookies.getAll(),
-      setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
+      /** @param {{ name: string, value: string, options: import('@supabase/ssr').CookieOptions }[]} cookiesToSet */
+      setAll: (cookiesToSet) => {
         cookiesToSet.forEach(({ name, value, options }) => {
           event.cookies.set(name, value, { ...options, path: options.path ?? '/' });
         });

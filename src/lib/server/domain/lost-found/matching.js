@@ -1,18 +1,23 @@
-import type { FoundItem, LostItem, MatchCandidate, MatchLevel } from '$lib/shared/types/domain';
+/** @typedef {import('$lib/shared/types/domain').FoundItem} FoundItem */
+/** @typedef {import('$lib/shared/types/domain').LostItem} LostItem */
+/** @typedef {import('$lib/shared/types/domain').MatchCandidate} MatchCandidate */
+/** @typedef {import('$lib/shared/types/domain').MatchLevel} MatchLevel */
 
-export interface MatchableReport {
-  id: string;
-  description: string;
-  occurredAtText: string;
-  location?: string;
-  createdAt?: string;
-}
+/**
+ * @typedef {object} MatchableReport
+ * @property {string} id
+ * @property {string} description
+ * @property {string} occurredAtText
+ * @property {string} [location]
+ * @property {string} [createdAt]
+ */
 
-export interface MatchScore {
-  score: number;
-  level: MatchLevel;
-  reasons: string[];
-}
+/**
+ * @typedef {object} MatchScore
+ * @property {number} score
+ * @property {MatchLevel} level
+ * @property {string[]} reasons
+ */
 
 const stopWords = new Set([
   'a',
@@ -43,7 +48,8 @@ const stopWords = new Set([
   'va'
 ]);
 
-export function normalizeSearchText(value: string) {
+/** @param {string} value */
+export function normalizeSearchText(value) {
   return value
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
@@ -53,26 +59,40 @@ export function normalizeSearchText(value: string) {
     .trim();
 }
 
-export function tokenizeReport(value: string) {
+/** @param {string} value */
+export function tokenizeReport(value) {
   return normalizeSearchText(value)
     .split(' ')
     .filter((token) => token.length > 1 && !stopWords.has(token));
 }
 
-function overlapScore(left: string[], right: string[]) {
+/**
+ * @param {string[]} left
+ * @param {string[]} right
+ */
+function overlapScore(left, right) {
   if (!left.length || !right.length) return 0;
   const rightSet = new Set(right);
   const shared = left.filter((token) => rightSet.has(token));
   return shared.length / Math.max(left.length, right.length);
 }
 
-function timeHintScore(left: string, right: string) {
+/**
+ * @param {string} left
+ * @param {string} right
+ */
+function timeHintScore(left, right) {
   const leftTokens = tokenizeReport(left);
   const rightTokens = tokenizeReport(right);
   return overlapScore(leftTokens, rightTokens);
 }
 
-export function scoreLostFoundMatch(lost: MatchableReport, found: MatchableReport): MatchScore {
+/**
+ * @param {MatchableReport} lost
+ * @param {MatchableReport} found
+ * @returns {MatchScore}
+ */
+export function scoreLostFoundMatch(lost, found) {
   const lostDescription = tokenizeReport(lost.description);
   const foundDescription = tokenizeReport(found.description);
   const description = overlapScore(lostDescription, foundDescription);
@@ -80,7 +100,8 @@ export function scoreLostFoundMatch(lost: MatchableReport, found: MatchableRepor
   const location = found.location ? overlapScore(tokenizeReport(lost.description), tokenizeReport(found.location)) : 0;
 
   const score = Math.round(Math.min(1, description * 0.72 + time * 0.18 + location * 0.1) * 100);
-  const level: MatchLevel = score >= 62 ? 'strong' : score >= 34 ? 'near' : 'none';
+  /** @type {MatchLevel} */
+  const level = score >= 62 ? 'strong' : score >= 34 ? 'near' : 'none';
   const reasons = [
     description > 0 ? 'mô tả có tín hiệu trùng' : '',
     time > 0 ? 'thời gian gần nhau' : '',
@@ -90,7 +111,12 @@ export function scoreLostFoundMatch(lost: MatchableReport, found: MatchableRepor
   return { score, level, reasons };
 }
 
-export function buildMatchCandidate(lost: LostItem, found: FoundItem): MatchCandidate | null {
+/**
+ * @param {LostItem} lost
+ * @param {FoundItem} found
+ * @returns {MatchCandidate | null}
+ */
+export function buildMatchCandidate(lost, found) {
   const result = scoreLostFoundMatch(
     {
       id: lost.id,
@@ -118,8 +144,13 @@ export function buildMatchCandidate(lost: LostItem, found: FoundItem): MatchCand
   };
 }
 
-export function findCandidateMatches(lostItems: LostItem[], foundItems: FoundItem[]) {
-  const candidates: MatchCandidate[] = [];
+/**
+ * @param {LostItem[]} lostItems
+ * @param {FoundItem[]} foundItems
+ */
+export function findCandidateMatches(lostItems, foundItems) {
+  /** @type {MatchCandidate[]} */
+  const candidates = [];
 
   for (const lost of lostItems) {
     if (!['open', 'matched'].includes(lost.status)) continue;

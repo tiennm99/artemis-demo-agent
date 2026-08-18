@@ -1,4 +1,4 @@
-import { error, type RequestEvent } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
@@ -12,16 +12,19 @@ import {
   updateMemoryListingStatus
 } from '$lib/server/persistence/memory-store';
 import { rankMarketplaceListings } from '$lib/server/domain/marketplace/ranking';
-import type {
-  ImageMetadata,
-  ListingStatus,
-  MarketplaceListing,
-  ProfileSummary
-} from '$lib/shared/types/domain';
 
-type Row = Record<string, unknown>;
+/** @typedef {import('$lib/shared/types/domain').ImageMetadata} ImageMetadata */
+/** @typedef {import('$lib/shared/types/domain').ListingStatus} ListingStatus */
+/** @typedef {import('$lib/shared/types/domain').MarketplaceListing} MarketplaceListing */
+/** @typedef {import('$lib/shared/types/domain').ProfileSummary} ProfileSummary */
 
-function profileFromUser(user: App.ArtemisUser): ProfileSummary {
+/** @typedef {Record<string, unknown>} Row */
+
+/**
+ * @param {App.ArtemisUser} user
+ * @returns {ProfileSummary}
+ */
+function profileFromUser(user) {
   return {
     id: user.id,
     email: user.email,
@@ -31,8 +34,13 @@ function profileFromUser(user: App.ArtemisUser): ProfileSummary {
   };
 }
 
-function profileFromRow(row: Row, fallback?: ProfileSummary): ProfileSummary {
-  const profile = (row.profiles ?? row.profile) as Row | undefined;
+/**
+ * @param {Row} row
+ * @param {ProfileSummary} [fallback]
+ * @returns {ProfileSummary}
+ */
+function profileFromRow(row, fallback) {
+  const profile = /** @type {Row | undefined} */ (row.profiles ?? row.profile);
   return {
     id: String(row.owner_profile_id ?? profile?.id ?? fallback?.id ?? 'unknown'),
     email: String(profile?.email ?? fallback?.email ?? 'unknown@example.com'),
@@ -42,13 +50,22 @@ function profileFromRow(row: Row, fallback?: ProfileSummary): ProfileSummary {
   };
 }
 
-function imageFromRow(row: Row): ImageMetadata | undefined {
+/**
+ * @param {Row} row
+ * @returns {ImageMetadata | undefined}
+ */
+function imageFromRow(row) {
   const metadata = row.image_metadata;
   if (!metadata || typeof metadata !== 'object') return undefined;
-  return metadata as ImageMetadata;
+  return /** @type {ImageMetadata} */ (metadata);
 }
 
-function listingFromRow(row: Row, currentUserId?: string): MarketplaceListing {
+/**
+ * @param {Row} row
+ * @param {string} [currentUserId]
+ * @returns {MarketplaceListing}
+ */
+function listingFromRow(row, currentUserId) {
   const interests = Array.isArray(row.marketplace_interests) ? row.marketplace_interests : [];
   return {
     id: String(row.id),
@@ -58,19 +75,23 @@ function listingFromRow(row: Row, currentUserId?: string): MarketplaceListing {
     description: String(row.description ?? ''),
     priceText: String(row.price_text ?? ''),
     contact: String(row.contact ?? ''),
-    status: String(row.status ?? 'pending') as ListingStatus,
+    status: /** @type {ListingStatus} */ (String(row.status ?? 'pending')),
     image: imageFromRow(row),
     careCount: Number(row.care_count ?? interests.length ?? 0),
     caredByCurrentUser: currentUserId
-      ? interests.some((interest) => String((interest as Row).profile_id) === currentUserId)
+      ? interests.some((interest) => String(/** @type {Row} */ (interest).profile_id) === currentUserId)
       : false,
-    payload: (row.payload as Record<string, unknown>) ?? {},
+    payload: /** @type {Record<string, unknown>} */ (row.payload) ?? {},
     createdAt: String(row.created_at ?? new Date().toISOString()),
     updatedAt: String(row.updated_at ?? row.created_at ?? new Date().toISOString())
   };
 }
 
-async function ensureSupabaseProfile(event: RequestEvent, user: App.ArtemisUser) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} user
+ */
+async function ensureSupabaseProfile(event, user) {
   const supabase = createSupabaseServerClient(event);
   const { error: profileError } = await supabase.from('profiles').upsert(
     {
@@ -87,7 +108,11 @@ async function ensureSupabaseProfile(event: RequestEvent, user: App.ArtemisUser)
   if (profileError) throw error(500, `Không thể đồng bộ profile Artemis: ${profileError.message}`);
 }
 
-async function listSupabaseListings(event: RequestEvent, user?: App.ArtemisUser | null) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser | null} [user]
+ */
+async function listSupabaseListings(event, user) {
   const supabase = createSupabaseServerClient(event);
   const { data, error: listError } = await supabase
     .from('marketplace_listings')
@@ -96,10 +121,15 @@ async function listSupabaseListings(event: RequestEvent, user?: App.ArtemisUser 
     .limit(60);
 
   if (listError) return listMemoryMarketplace(user);
-  return (data ?? []).map((row) => listingFromRow(row as Row, user?.id));
+  return (data ?? []).map((row) => listingFromRow(/** @type {Row} */ (row), user?.id));
 }
 
-export async function listMarketplace(event: RequestEvent, user?: App.ArtemisUser | null, query = '') {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser | null} [user]
+ * @param {string} [query]
+ */
+export async function listMarketplace(event, user, query = '') {
   const listings = hasSupabaseConfig() ? await listSupabaseListings(event, user) : listMemoryMarketplace(user);
   return {
     listings: rankMarketplaceListings(listings, query),
@@ -107,15 +137,12 @@ export async function listMarketplace(event: RequestEvent, user?: App.ArtemisUse
   };
 }
 
-export async function createMarketplaceListing(event: RequestEvent, user: App.ArtemisUser, input: {
-  id: string;
-  name: string;
-  quantity: number;
-  description: string;
-  priceText: string;
-  contact: string;
-  image?: ImageMetadata;
-}) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} user
+ * @param {{ id: string, name: string, quantity: number, description: string, priceText: string, contact: string, image?: ImageMetadata }} input
+ */
+export async function createMarketplaceListing(event, user, input) {
   if (!hasSupabaseConfig()) return createMemoryListing(user, input);
 
   await ensureSupabaseProfile(event, user);
@@ -138,10 +165,15 @@ export async function createMarketplaceListing(event: RequestEvent, user: App.Ar
     .single();
 
   if (insertError) throw error(500, `Không thể phóng vật phẩm lên chợ: ${insertError.message}`);
-  return listingFromRow(data as Row, user.id);
+  return listingFromRow(/** @type {Row} */ (data), user.id);
 }
 
-export async function toggleMarketplaceCare(event: RequestEvent, user: App.ArtemisUser, listingId: string) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} user
+ * @param {string} listingId
+ */
+export async function toggleMarketplaceCare(event, user, listingId) {
   if (!hasSupabaseConfig()) return toggleMemoryMarketplaceInterest(user, listingId);
 
   await ensureSupabaseProfile(event, user);
@@ -172,7 +204,8 @@ export async function toggleMarketplaceCare(event: RequestEvent, user: App.Artem
   return null;
 }
 
-export async function listMarketplaceAdmin(event: RequestEvent) {
+/** @param {import('@sveltejs/kit').RequestEvent} event */
+export async function listMarketplaceAdmin(event) {
   const listings = hasSupabaseConfig()
     ? await listSupabaseListings(event, event.locals.user)
     : listMemoryMarketplace(event.locals.user);
@@ -184,12 +217,13 @@ export async function listMarketplaceAdmin(event: RequestEvent) {
   };
 }
 
-export async function moderateMarketplaceListing(
-  event: RequestEvent,
-  actor: App.ArtemisUser,
-  listingId: string,
-  status: ListingStatus
-) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} actor
+ * @param {string} listingId
+ * @param {ListingStatus} status
+ */
+export async function moderateMarketplaceListing(event, actor, listingId, status) {
   if (!hasSupabaseConfig()) return updateMemoryListingStatus(listingId, status, actor);
 
   const supabase = hasSupabaseServiceConfig() ? createSupabaseServiceClient() : createSupabaseServerClient(event);
@@ -201,5 +235,5 @@ export async function moderateMarketplaceListing(
     .single();
 
   if (updateError) throw error(500, `Không thể cập nhật vật phẩm: ${updateError.message}`);
-  return listingFromRow(data as Row, actor.id);
+  return listingFromRow(/** @type {Row} */ (data), actor.id);
 }

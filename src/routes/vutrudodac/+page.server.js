@@ -1,29 +1,35 @@
 import { fail } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
 import { requireVerifiedUserForAction } from '$lib/server/auth/session';
 import { assertSameOrigin } from '$lib/server/security/origin-check';
 import { createFoundReport, createLostReport, listLostFoundDashboard } from '$lib/server/repositories/lost-found';
 import { markNotificationRead } from '$lib/server/repositories/notifications';
 import { uploadImageFromForm } from '$lib/server/storage/image-storage';
 
-function readText(formData: FormData, key: string) {
+/**
+ * @param {FormData} formData
+ * @param {string} key
+ */
+function readText(formData, key) {
   return String(formData.get(key) ?? '').trim();
 }
 
-function validateDescription(description: string) {
+/** @param {string} description */
+function validateDescription(description) {
   if (description.length < 3) return 'Mô tả cần rõ hơn để radar dò đúng tín hiệu.';
   if (description.length > 2000) return 'Mô tả đang quá dài cho một tín hiệu Artemis.';
   return null;
 }
 
-export const load: PageServerLoad = async (event) => {
+/** @type {import('./$types').PageServerLoad} */
+export const load = async (event) => {
   return {
     ...(await listLostFoundDashboard(event, event.locals.user)),
     user: event.locals.user
   };
 };
 
-export const actions: Actions = {
+/** @type {import('./$types').Actions} */
+export const actions = {
   createLost: async (event) => {
     assertSameOrigin(event);
     const authFailure = requireVerifiedUserForAction(event.locals.user);

@@ -6,13 +6,14 @@ import {
   updateMemoryListingStatus
 } from './memory-store';
 
+/** @type {App.ArtemisUser} */
 const user = {
   id: 'dev-user',
   email: 'dev@example.com',
   displayName: 'dev',
   domain: 'dev',
   verifiedEmail: true,
-  authProvider: 'google' as const
+  authProvider: 'google'
 };
 
 describe('memory store idempotency helpers', () => {

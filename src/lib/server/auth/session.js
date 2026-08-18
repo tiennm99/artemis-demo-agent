@@ -1,14 +1,20 @@
-import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { env as privateEnv } from '$env/dynamic/private';
 import { createSupabaseServerClient, hasSupabaseConfig } from '$lib/server/supabase/client';
 
 const defaultDevEmail = 'minhtienit99@gmail.com';
 
-function domainFromEmail(email: string) {
+/** @param {string} email */
+function domainFromEmail(email) {
   return email.split('@')[0]?.toLowerCase().replace(/[^a-z0-9._-]/g, '') || 'starter';
 }
 
-function makeUser(email: string, id = `dev-${domainFromEmail(email)}`): App.ArtemisUser {
+/**
+ * @param {string} email
+ * @param {string} [id]
+ * @returns {App.ArtemisUser}
+ */
+function makeUser(email, id = `dev-${domainFromEmail(email)}`) {
   const domain = domainFromEmail(email);
   return {
     id,
@@ -20,12 +26,17 @@ function makeUser(email: string, id = `dev-${domainFromEmail(email)}`): App.Arte
   };
 }
 
-export function getFallbackDevUser(): App.ArtemisUser {
+/** @returns {App.ArtemisUser} */
+export function getFallbackDevUser() {
   const configured = privateEnv.ARTEMIS_DEV_USER_EMAIL || privateEnv.ARTEMIS_ADMIN_EMAILS?.split(',')[0];
   return makeUser((configured || defaultDevEmail).trim().toLowerCase());
 }
 
-export async function getSessionUser(event: RequestEvent): Promise<App.ArtemisUser | null> {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @returns {Promise<App.ArtemisUser | null>}
+ */
+export async function getSessionUser(event) {
   if (!hasSupabaseConfig()) return getFallbackDevUser();
 
   const supabase = createSupabaseServerClient(event);
@@ -58,14 +69,16 @@ export async function getSessionUser(event: RequestEvent): Promise<App.ArtemisUs
   };
 }
 
-export async function requireVerifiedUser(event: RequestEvent) {
+/** @param {import('@sveltejs/kit').RequestEvent} event */
+export async function requireVerifiedUser(event) {
   const user = event.locals.user ?? (await getSessionUser(event));
   if (!user) throw redirect(303, '/account?reason=signin');
   if (!user.verifiedEmail) throw redirect(303, '/account?reason=verified-email');
   return user;
 }
 
-export function requireVerifiedUserForAction(user: App.ArtemisUser | null) {
+/** @param {App.ArtemisUser | null} user */
+export function requireVerifiedUserForAction(user) {
   if (!user) return fail(401, { message: 'Bạn cần đăng nhập Google để gửi tín hiệu.' });
   if (!user.verifiedEmail) return fail(403, { message: 'Email Google cần được xác minh trước khi dùng Artemis.' });
   return null;

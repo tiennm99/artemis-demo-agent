@@ -1,8 +1,13 @@
-import { error, type RequestEvent } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { createSupabaseServerClient, hasSupabaseConfig } from '$lib/server/supabase/client';
 import { markMemoryNotificationRead } from '$lib/server/persistence/memory-store';
 
-export async function markNotificationRead(event: RequestEvent, user: App.ArtemisUser, notificationId: string) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} user
+ * @param {string} notificationId
+ */
+export async function markNotificationRead(event, user, notificationId) {
   if (!hasSupabaseConfig()) return markMemoryNotificationRead(user.id, notificationId);
 
   const supabase = createSupabaseServerClient(event);
