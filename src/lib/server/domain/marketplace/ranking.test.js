@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { rankMarketplaceListings } from './ranking';
-import type { MarketplaceListing } from '$lib/shared/types/domain';
+
+/** @typedef {import('$lib/shared/types/domain').MarketplaceListing} MarketplaceListing */
 
 const owner = {
   id: 'starter-1',
@@ -10,7 +11,11 @@ const owner = {
   verifiedEmail: true
 };
 
-function listing(overrides: Partial<MarketplaceListing>): MarketplaceListing {
+/**
+ * @param {Partial<MarketplaceListing>} overrides
+ * @returns {MarketplaceListing}
+ */
+function listing(overrides) {
   return {
     id: 'listing-1',
     owner,

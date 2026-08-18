@@ -1,43 +1,45 @@
-import type {
-  AdminAction,
-  AdminScope,
-  FoundItem,
-  ImageMetadata,
-  ListingStatus,
-  LostItem,
-  MarketplaceListing,
-  MatchCandidate,
-  Notification,
-  NotificationType,
-  ProfileSummary,
-  ReportStatus
-} from '$lib/shared/types/domain';
 import { findCandidateMatches } from '$lib/server/domain/lost-found/matching';
+
+/** @typedef {import('$lib/shared/types/domain').AdminAction} AdminAction */
+/** @typedef {import('$lib/shared/types/domain').AdminScope} AdminScope */
+/** @typedef {import('$lib/shared/types/domain').FoundItem} FoundItem */
+/** @typedef {import('$lib/shared/types/domain').ImageMetadata} ImageMetadata */
+/** @typedef {import('$lib/shared/types/domain').ListingStatus} ListingStatus */
+/** @typedef {import('$lib/shared/types/domain').LostItem} LostItem */
+/** @typedef {import('$lib/shared/types/domain').MarketplaceListing} MarketplaceListing */
+/** @typedef {import('$lib/shared/types/domain').MatchCandidate} MatchCandidate */
+/** @typedef {import('$lib/shared/types/domain').Notification} Notification */
+/** @typedef {import('$lib/shared/types/domain').NotificationType} NotificationType */
+/** @typedef {import('$lib/shared/types/domain').ProfileSummary} ProfileSummary */
+/** @typedef {import('$lib/shared/types/domain').ReportStatus} ReportStatus */
 
 function randomId() {
   return globalThis.crypto.randomUUID();
 }
 
-interface MarketplaceInterest {
-  listingId: string;
-  profileId: string;
-  createdAt: string;
-}
+/**
+ * @typedef {object} MarketplaceInterest
+ * @property {string} listingId
+ * @property {string} profileId
+ * @property {string} createdAt
+ */
 
-export interface ArtemisMemoryState {
-  profiles: ProfileSummary[];
-  lostItems: LostItem[];
-  foundItems: FoundItem[];
-  matchCandidates: MatchCandidate[];
-  listings: MarketplaceListing[];
-  interests: MarketplaceInterest[];
-  notifications: Notification[];
-  adminActions: AdminAction[];
-}
+/**
+ * @typedef {object} ArtemisMemoryState
+ * @property {ProfileSummary[]} profiles
+ * @property {LostItem[]} lostItems
+ * @property {FoundItem[]} foundItems
+ * @property {MatchCandidate[]} matchCandidates
+ * @property {MarketplaceListing[]} listings
+ * @property {MarketplaceInterest[]} interests
+ * @property {Notification[]} notifications
+ * @property {AdminAction[]} adminActions
+ */
 
 const now = () => new Date().toISOString();
 
-const starterProfile: ProfileSummary = {
+/** @type {ProfileSummary} */
+const starterProfile = {
   id: 'seed-starter',
   email: 'starter@example.com',
   displayName: 'starter',
@@ -45,7 +47,8 @@ const starterProfile: ProfileSummary = {
   verifiedEmail: true
 };
 
-function emptyState(): ArtemisMemoryState {
+/** @returns {ArtemisMemoryState} */
+function emptyState() {
   return {
     profiles: [starterProfile],
     lostItems: [
@@ -100,7 +103,11 @@ function emptyState(): ArtemisMemoryState {
 const memoryState = emptyState();
 memoryState.matchCandidates = findCandidateMatches(memoryState.lostItems, memoryState.foundItems);
 
-function toProfile(user: App.ArtemisUser): ProfileSummary {
+/**
+ * @param {App.ArtemisUser} user
+ * @returns {ProfileSummary}
+ */
+function toProfile(user) {
   return {
     id: user.id,
     email: user.email,
@@ -110,7 +117,8 @@ function toProfile(user: App.ArtemisUser): ProfileSummary {
   };
 }
 
-function ensureProfile(user: App.ArtemisUser) {
+/** @param {App.ArtemisUser} user */
+function ensureProfile(user) {
   const existing = memoryState.profiles.find((profile) => profile.id === user.id);
   const next = toProfile(user);
 
@@ -123,7 +131,8 @@ function ensureProfile(user: App.ArtemisUser) {
   return next;
 }
 
-function upsertMatchCandidates(candidates: MatchCandidate[]) {
+/** @param {MatchCandidate[]} candidates */
+function upsertMatchCandidates(candidates) {
   for (const candidate of candidates) {
     const existing = memoryState.matchCandidates.find(
       (match) => match.lostItemId === candidate.lostItemId && match.foundItemId === candidate.foundItemId
@@ -153,15 +162,15 @@ export function resetMemoryStateForTests() {
   memoryState.adminActions = next.adminActions;
 }
 
-export function createMemoryLostItem(user: App.ArtemisUser, input: {
-  id?: string;
-  description: string;
-  lostAtText: string;
-  image?: ImageMetadata;
-}) {
+/**
+ * @param {App.ArtemisUser} user
+ * @param {{ id?: string, description: string, lostAtText: string, image?: ImageMetadata }} input
+ */
+export function createMemoryLostItem(user, input) {
   const profile = ensureProfile(user);
   const timestamp = now();
-  const item: LostItem = {
+  /** @type {LostItem} */
+  const item = {
     id: input.id ?? randomId(),
     owner: profile,
     description: input.description,
@@ -187,16 +196,15 @@ export function createMemoryLostItem(user: App.ArtemisUser, input: {
   return { item, candidates };
 }
 
-export function createMemoryFoundItem(user: App.ArtemisUser, input: {
-  id?: string;
-  description: string;
-  foundAtText: string;
-  location: string;
-  image?: ImageMetadata;
-}) {
+/**
+ * @param {App.ArtemisUser} user
+ * @param {{ id?: string, description: string, foundAtText: string, location: string, image?: ImageMetadata }} input
+ */
+export function createMemoryFoundItem(user, input) {
   const profile = ensureProfile(user);
   const timestamp = now();
-  const item: FoundItem = {
+  /** @type {FoundItem} */
+  const item = {
     id: input.id ?? randomId(),
     finder: profile,
     description: input.description,
@@ -225,7 +233,8 @@ export function createMemoryFoundItem(user: App.ArtemisUser, input: {
   return { item, candidates };
 }
 
-export function listMemoryLostFound(user?: App.ArtemisUser | null) {
+/** @param {App.ArtemisUser | null} [user] */
+export function listMemoryLostFound(user) {
   const profileId = user?.id;
   return {
     lostItems: memoryState.lostItems.filter((item) => item.status !== 'hidden').slice(0, 20),
@@ -237,12 +246,13 @@ export function listMemoryLostFound(user?: App.ArtemisUser | null) {
   };
 }
 
-export function updateMemoryReportStatus(
-  kind: 'lost' | 'found',
-  id: string,
-  status: ReportStatus,
-  actor: App.ArtemisUser
-) {
+/**
+ * @param {'lost' | 'found'} kind
+ * @param {string} id
+ * @param {ReportStatus} status
+ * @param {App.ArtemisUser} actor
+ */
+export function updateMemoryReportStatus(kind, id, status, actor) {
   const collection = kind === 'lost' ? memoryState.lostItems : memoryState.foundItems;
   const item = collection.find((entry) => entry.id === id);
   if (!item) return null;
@@ -252,18 +262,15 @@ export function updateMemoryReportStatus(
   return item;
 }
 
-export function createMemoryListing(user: App.ArtemisUser, input: {
-  id?: string;
-  name: string;
-  quantity: number;
-  description: string;
-  priceText: string;
-  contact: string;
-  image?: ImageMetadata;
-}) {
+/**
+ * @param {App.ArtemisUser} user
+ * @param {{ id?: string, name: string, quantity: number, description: string, priceText: string, contact: string, image?: ImageMetadata }} input
+ */
+export function createMemoryListing(user, input) {
   const profile = ensureProfile(user);
   const timestamp = now();
-  const listing: MarketplaceListing = {
+  /** @type {MarketplaceListing} */
+  const listing = {
     id: input.id ?? randomId(),
     owner: profile,
     name: input.name,
@@ -286,7 +293,8 @@ export function createMemoryListing(user: App.ArtemisUser, input: {
   return listing;
 }
 
-export function listMemoryMarketplace(user?: App.ArtemisUser | null) {
+/** @param {App.ArtemisUser | null} [user] */
+export function listMemoryMarketplace(user) {
   const profileId = user?.id;
   return memoryState.listings.map((listing) => ({
     ...listing,
@@ -300,7 +308,11 @@ export function listMemoryMarketplace(user?: App.ArtemisUser | null) {
   }));
 }
 
-export function toggleMemoryMarketplaceInterest(user: App.ArtemisUser, listingId: string) {
+/**
+ * @param {App.ArtemisUser} user
+ * @param {string} listingId
+ */
+export function toggleMemoryMarketplaceInterest(user, listingId) {
   ensureProfile(user);
   const listing = memoryState.listings.find((entry) => entry.id === listingId);
   if (!listing) return null;
@@ -326,7 +338,12 @@ export function toggleMemoryMarketplaceInterest(user: App.ArtemisUser, listingId
   };
 }
 
-export function updateMemoryListingStatus(id: string, status: ListingStatus, actor: App.ArtemisUser) {
+/**
+ * @param {string} id
+ * @param {ListingStatus} status
+ * @param {App.ArtemisUser} actor
+ */
+export function updateMemoryListingStatus(id, status, actor) {
   const listing = memoryState.listings.find((entry) => entry.id === id);
   if (!listing) return null;
   listing.status = status;
@@ -339,17 +356,19 @@ export function updateMemoryListingStatus(id: string, status: ListingStatus, act
   return listing;
 }
 
-export function createMemoryNotification(
-  recipientId: string,
-  type: NotificationType,
-  message: string,
-  payload: Record<string, unknown>
-) {
+/**
+ * @param {string} recipientId
+ * @param {NotificationType} type
+ * @param {string} message
+ * @param {Record<string, unknown>} payload
+ */
+export function createMemoryNotification(recipientId, type, message, payload) {
   const deliveryKey = `${type}:${recipientId}:${JSON.stringify(payload)}`;
   const existing = memoryState.notifications.find((notification) => notification.deliveryKey === deliveryKey);
   if (existing) return existing;
 
-  const notification: Notification = {
+  /** @type {Notification} */
+  const notification = {
     id: randomId(),
     recipientId,
     type,
@@ -363,7 +382,11 @@ export function createMemoryNotification(
   return notification;
 }
 
-export function markMemoryNotificationRead(recipientId: string, notificationId: string) {
+/**
+ * @param {string} recipientId
+ * @param {string} notificationId
+ */
+export function markMemoryNotificationRead(recipientId, notificationId) {
   const notification = memoryState.notifications.find(
     (entry) => entry.id === notificationId && entry.recipientId === recipientId
   );
@@ -372,15 +395,17 @@ export function markMemoryNotificationRead(recipientId: string, notificationId: 
   return notification;
 }
 
-export function createMemoryAdminAction(
-  actor: App.ArtemisUser,
-  scope: AdminScope,
-  action: string,
-  targetType: string,
-  targetId: string,
-  payload: Record<string, unknown>
-) {
-  const adminAction: AdminAction = {
+/**
+ * @param {App.ArtemisUser} actor
+ * @param {AdminScope} scope
+ * @param {string} action
+ * @param {string} targetType
+ * @param {string} targetId
+ * @param {Record<string, unknown>} payload
+ */
+export function createMemoryAdminAction(actor, scope, action, targetType, targetId, payload) {
+  /** @type {AdminAction} */
+  const adminAction = {
     id: randomId(),
     actor: ensureProfile(actor),
     scope,

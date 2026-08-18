@@ -1,4 +1,4 @@
-import { error, type RequestEvent } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
@@ -12,12 +12,21 @@ import {
   updateMemoryReportStatus
 } from '$lib/server/persistence/memory-store';
 import { findCandidateMatches } from '$lib/server/domain/lost-found/matching';
-import type { FoundItem, ImageMetadata, LostItem, ProfileSummary, ReportStatus } from '$lib/shared/types/domain';
 
-type ReportKind = 'lost' | 'found';
-type Row = Record<string, unknown>;
+/** @typedef {import('$lib/shared/types/domain').FoundItem} FoundItem */
+/** @typedef {import('$lib/shared/types/domain').ImageMetadata} ImageMetadata */
+/** @typedef {import('$lib/shared/types/domain').LostItem} LostItem */
+/** @typedef {import('$lib/shared/types/domain').ProfileSummary} ProfileSummary */
+/** @typedef {import('$lib/shared/types/domain').ReportStatus} ReportStatus */
 
-function profileFromUser(user: App.ArtemisUser): ProfileSummary {
+/** @typedef {'lost' | 'found'} ReportKind */
+/** @typedef {Record<string, unknown>} Row */
+
+/**
+ * @param {App.ArtemisUser} user
+ * @returns {ProfileSummary}
+ */
+function profileFromUser(user) {
   return {
     id: user.id,
     email: user.email,
@@ -27,8 +36,13 @@ function profileFromUser(user: App.ArtemisUser): ProfileSummary {
   };
 }
 
-function profileFromRow(row: Row, fallback?: ProfileSummary): ProfileSummary {
-  const profile = (row.profiles ?? row.profile) as Row | undefined;
+/**
+ * @param {Row} row
+ * @param {ProfileSummary} [fallback]
+ * @returns {ProfileSummary}
+ */
+function profileFromRow(row, fallback) {
+  const profile = /** @type {Row | undefined} */ (row.profiles ?? row.profile);
   return {
     id: String(row.owner_profile_id ?? row.finder_profile_id ?? profile?.id ?? fallback?.id ?? 'unknown'),
     email: String(profile?.email ?? fallback?.email ?? 'unknown@example.com'),
@@ -38,42 +52,60 @@ function profileFromRow(row: Row, fallback?: ProfileSummary): ProfileSummary {
   };
 }
 
-function imageFromRow(row: Row): ImageMetadata | undefined {
+/**
+ * @param {Row} row
+ * @returns {ImageMetadata | undefined}
+ */
+function imageFromRow(row) {
   const metadata = row.image_metadata;
   if (!metadata || typeof metadata !== 'object') return undefined;
-  return metadata as ImageMetadata;
+  return /** @type {ImageMetadata} */ (metadata);
 }
 
-function lostFromRow(row: Row, fallback?: ProfileSummary): LostItem {
+/**
+ * @param {Row} row
+ * @param {ProfileSummary} [fallback]
+ * @returns {LostItem}
+ */
+function lostFromRow(row, fallback) {
   return {
     id: String(row.id),
     owner: profileFromRow(row, fallback),
     description: String(row.description ?? ''),
     lostAtText: String(row.occurred_at_text ?? ''),
-    status: String(row.status ?? 'open') as ReportStatus,
+    status: /** @type {ReportStatus} */ (String(row.status ?? 'open')),
     image: imageFromRow(row),
-    payload: (row.payload as Record<string, unknown>) ?? {},
+    payload: /** @type {Record<string, unknown>} */ (row.payload) ?? {},
     createdAt: String(row.created_at ?? new Date().toISOString()),
     updatedAt: String(row.updated_at ?? row.created_at ?? new Date().toISOString())
   };
 }
 
-function foundFromRow(row: Row, fallback?: ProfileSummary): FoundItem {
+/**
+ * @param {Row} row
+ * @param {ProfileSummary} [fallback]
+ * @returns {FoundItem}
+ */
+function foundFromRow(row, fallback) {
   return {
     id: String(row.id),
     finder: profileFromRow(row, fallback),
     description: String(row.description ?? ''),
     foundAtText: String(row.occurred_at_text ?? ''),
     location: String(row.location ?? ''),
-    status: String(row.status ?? 'open') as ReportStatus,
+    status: /** @type {ReportStatus} */ (String(row.status ?? 'open')),
     image: imageFromRow(row),
-    payload: (row.payload as Record<string, unknown>) ?? {},
+    payload: /** @type {Record<string, unknown>} */ (row.payload) ?? {},
     createdAt: String(row.created_at ?? new Date().toISOString()),
     updatedAt: String(row.updated_at ?? row.created_at ?? new Date().toISOString())
   };
 }
 
-async function ensureSupabaseProfile(event: RequestEvent, user: App.ArtemisUser) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} user
+ */
+async function ensureSupabaseProfile(event, user) {
   const supabase = createSupabaseServerClient(event);
   const { error: profileError } = await supabase.from('profiles').upsert(
     {
@@ -90,7 +122,11 @@ async function ensureSupabaseProfile(event: RequestEvent, user: App.ArtemisUser)
   if (profileError) throw error(500, `Không thể đồng bộ profile Artemis: ${profileError.message}`);
 }
 
-async function listSupabaseReports(event: RequestEvent, user?: App.ArtemisUser | null) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser | null} [user]
+ */
+async function listSupabaseReports(event, user) {
   const supabase = createSupabaseServerClient(event);
   const [lostResponse, foundResponse, notificationResponse] = await Promise.all([
     supabase
@@ -119,9 +155,9 @@ async function listSupabaseReports(event: RequestEvent, user?: App.ArtemisUser |
     return { ...listMemoryLostFound(user), warning: 'Supabase chưa sẵn sàng, Artemis đang dùng dữ liệu local.' };
   }
 
-  const lostItems = (lostResponse.data ?? []).map((row) => lostFromRow(row as Row, user ? profileFromUser(user) : undefined));
+  const lostItems = (lostResponse.data ?? []).map((row) => lostFromRow(/** @type {Row} */ (row), user ? profileFromUser(user) : undefined));
   const foundItems = (foundResponse.data ?? []).map((row) =>
-    foundFromRow(row as Row, user ? profileFromUser(user) : undefined)
+    foundFromRow(/** @type {Row} */ (row), user ? profileFromUser(user) : undefined)
   );
 
   return {
@@ -135,23 +171,27 @@ async function listSupabaseReports(event: RequestEvent, user?: App.ArtemisUser |
       message: String(row.message),
       readAt: row.read_at ? String(row.read_at) : null,
       deliveryKey: String(row.delivery_key),
-      payload: (row.payload as Record<string, unknown>) ?? {},
+      payload: /** @type {Record<string, unknown>} */ (row.payload) ?? {},
       createdAt: String(row.created_at)
     }))
   };
 }
 
-export async function listLostFoundDashboard(event: RequestEvent, user?: App.ArtemisUser | null) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser | null} [user]
+ */
+export async function listLostFoundDashboard(event, user) {
   if (!hasSupabaseConfig()) return listMemoryLostFound(user);
   return listSupabaseReports(event, user);
 }
 
-export async function createLostReport(event: RequestEvent, user: App.ArtemisUser, input: {
-  id: string;
-  description: string;
-  lostAtText: string;
-  image?: ImageMetadata;
-}) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} user
+ * @param {{ id: string, description: string, lostAtText: string, image?: ImageMetadata }} input
+ */
+export async function createLostReport(event, user, input) {
   if (!hasSupabaseConfig()) return createMemoryLostItem(user, input);
 
   await ensureSupabaseProfile(event, user);
@@ -171,16 +211,15 @@ export async function createLostReport(event: RequestEvent, user: App.ArtemisUse
     .single();
 
   if (insertError) throw error(500, `Không thể gửi tín hiệu tìm đồ: ${insertError.message}`);
-  return { item: lostFromRow(data as Row, profileFromUser(user)), candidates: [] };
+  return { item: lostFromRow(/** @type {Row} */ (data), profileFromUser(user)), candidates: [] };
 }
 
-export async function createFoundReport(event: RequestEvent, user: App.ArtemisUser, input: {
-  id: string;
-  description: string;
-  foundAtText: string;
-  location: string;
-  image?: ImageMetadata;
-}) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} user
+ * @param {{ id: string, description: string, foundAtText: string, location: string, image?: ImageMetadata }} input
+ */
+export async function createFoundReport(event, user, input) {
   if (!hasSupabaseConfig()) return createMemoryFoundItem(user, input);
 
   await ensureSupabaseProfile(event, user);
@@ -201,10 +240,11 @@ export async function createFoundReport(event: RequestEvent, user: App.ArtemisUs
     .single();
 
   if (insertError) throw error(500, `Không thể gửi tín hiệu trả đồ: ${insertError.message}`);
-  return { item: foundFromRow(data as Row, profileFromUser(user)), candidates: [] };
+  return { item: foundFromRow(/** @type {Row} */ (data), profileFromUser(user)), candidates: [] };
 }
 
-export async function listLostFoundAdmin(event: RequestEvent) {
+/** @param {import('@sveltejs/kit').RequestEvent} event */
+export async function listLostFoundAdmin(event) {
   const dashboard = await listLostFoundDashboard(event, event.locals.user);
   return {
     ...dashboard,
@@ -214,13 +254,14 @@ export async function listLostFoundAdmin(event: RequestEvent) {
   };
 }
 
-export async function updateReportStatus(
-  event: RequestEvent,
-  actor: App.ArtemisUser,
-  kind: ReportKind,
-  id: string,
-  status: ReportStatus
-) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} actor
+ * @param {ReportKind} kind
+ * @param {string} id
+ * @param {ReportStatus} status
+ */
+export async function updateReportStatus(event, actor, kind, id, status) {
   if (!hasSupabaseConfig()) return updateMemoryReportStatus(kind, id, status, actor);
 
   const supabase = hasSupabaseServiceConfig() ? createSupabaseServiceClient() : createSupabaseServerClient(event);
@@ -233,5 +274,5 @@ export async function updateReportStatus(
     .single();
 
   if (updateError) throw error(500, `Không thể cập nhật trạng thái tín hiệu: ${updateError.message}`);
-  return kind === 'lost' ? lostFromRow(data as Row) : foundFromRow(data as Row);
+  return kind === 'lost' ? lostFromRow(/** @type {Row} */ (data)) : foundFromRow(/** @type {Row} */ (data));
 }

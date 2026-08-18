@@ -1,5 +1,4 @@
 import { fail } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
 import { requireVerifiedUserForAction } from '$lib/server/auth/session';
 import { assertSameOrigin } from '$lib/server/security/origin-check';
 import {
@@ -9,11 +8,16 @@ import {
 } from '$lib/server/repositories/marketplace';
 import { uploadImageFromForm } from '$lib/server/storage/image-storage';
 
-function readText(formData: FormData, key: string) {
+/**
+ * @param {FormData} formData
+ * @param {string} key
+ */
+function readText(formData, key) {
   return String(formData.get(key) ?? '').trim();
 }
 
-export const load: PageServerLoad = async (event) => {
+/** @type {import('./$types').PageServerLoad} */
+export const load = async (event) => {
   const query = event.url.searchParams.get('q')?.trim() ?? '';
   return {
     ...(await listMarketplace(event, event.locals.user, query)),
@@ -22,7 +26,8 @@ export const load: PageServerLoad = async (event) => {
   };
 };
 
-export const actions: Actions = {
+/** @type {import('./$types').Actions} */
+export const actions = {
   createListing: async (event) => {
     assertSameOrigin(event);
     const authFailure = requireVerifiedUserForAction(event.locals.user);

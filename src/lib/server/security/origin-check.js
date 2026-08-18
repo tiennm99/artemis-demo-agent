@@ -1,6 +1,7 @@
-import { error, type RequestEvent } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 
-export function assertSameOrigin(event: RequestEvent) {
+/** @param {import('@sveltejs/kit').RequestEvent} event */
+export function assertSameOrigin(event) {
   const origin = event.request.headers.get('origin');
   if (!origin) return;
   if (origin !== event.url.origin) {

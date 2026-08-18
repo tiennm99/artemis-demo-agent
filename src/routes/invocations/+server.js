@@ -1,7 +1,9 @@
-import { json, type RequestHandler } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 
-export const POST: RequestHandler = async ({ request }) => {
-  let payload: { message?: unknown } = {};
+/** @type {import('./$types').RequestHandler} */
+export const POST = async ({ request }) => {
+  /** @type {{ message?: unknown }} */
+  let payload = {};
 
   try {
     payload = await request.json();

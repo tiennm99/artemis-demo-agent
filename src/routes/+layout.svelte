@@ -1,9 +1,9 @@
-<script lang="ts">
+<script>
   import { appName, publicRoutes } from '$lib/shared/constants/app';
   import '$lib/ui/artemis-theme/artemis.css';
-  import type { LayoutData } from './$types';
 
-  export let data: LayoutData;
+  /** @type {import('./$types').LayoutData} */
+  export let data;
 </script>
 
 <div class="app-shell">

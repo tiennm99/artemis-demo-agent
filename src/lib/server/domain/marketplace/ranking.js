@@ -1,11 +1,16 @@
-import type { MarketplaceListing } from '$lib/shared/types/domain';
 import { normalizeSearchText, tokenizeReport } from '$lib/server/domain/lost-found/matching';
 
-export interface RankedListing extends MarketplaceListing {
-  rankScore: number;
-}
+/** @typedef {import('$lib/shared/types/domain').MarketplaceListing} MarketplaceListing */
 
-export function marketplaceSearchScore(listing: MarketplaceListing, query: string) {
+/**
+ * @typedef {MarketplaceListing & { rankScore: number }} RankedListing
+ */
+
+/**
+ * @param {MarketplaceListing} listing
+ * @param {string} query
+ */
+export function marketplaceSearchScore(listing, query) {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return listing.careCount;
 
@@ -18,7 +23,12 @@ export function marketplaceSearchScore(listing: MarketplaceListing, query: strin
   return exactNameBoost + tokenScore + Math.min(20, listing.careCount * 2);
 }
 
-export function rankMarketplaceListings(listings: MarketplaceListing[], query = ''): RankedListing[] {
+/**
+ * @param {MarketplaceListing[]} listings
+ * @param {string} [query]
+ * @returns {RankedListing[]}
+ */
+export function rankMarketplaceListings(listings, query = '') {
   return listings
     .filter((listing) => listing.status === 'approved')
     .map((listing) => ({ ...listing, rankScore: marketplaceSearchScore(listing, query) }))

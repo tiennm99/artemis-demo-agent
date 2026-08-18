@@ -1,8 +1,8 @@
-import type { LayoutServerLoad } from './$types';
 import { hasAdminScope } from '$lib/server/auth/admin-roles';
 import { hasSupabaseConfig } from '$lib/server/supabase/client';
 
-export const load: LayoutServerLoad = ({ locals, url }) => {
+/** @type {import('./$types').LayoutServerLoad} */
+export const load = ({ locals, url }) => {
   return {
     currentPath: url.pathname,
     user: locals.user,

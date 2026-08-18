@@ -1,8 +1,8 @@
-<script lang="ts">
-  import type { ActionData, PageData } from './$types';
-
-  export let data: PageData;
-  export let form: ActionData;
+<script>
+  /** @type {import('./$types').PageData} */
+  export let data;
+  /** @type {import('./$types').ActionData} */
+  export let form;
 </script>
 
 <svelte:head>

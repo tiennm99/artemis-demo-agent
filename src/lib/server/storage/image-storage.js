@@ -1,13 +1,16 @@
-import { error, type RequestEvent } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import {
   artemisStorageBucketPrefix,
   createSupabaseServerClient,
   hasSupabaseConfig
 } from '$lib/server/supabase/client';
 import { imageUploadLimits } from '$lib/shared/constants/limits';
-import type { ImageMetadata, ProductScope } from '$lib/shared/types/domain';
 
-function sanitizeFileName(fileName: string) {
+/** @typedef {import('$lib/shared/types/domain').ImageMetadata} ImageMetadata */
+/** @typedef {import('$lib/shared/types/domain').ProductScope} ProductScope */
+
+/** @param {string} fileName */
+function sanitizeFileName(fileName) {
   const fallback = 'artemis-upload';
   const safe = fileName
     .toLowerCase()
@@ -17,14 +20,16 @@ function sanitizeFileName(fileName: string) {
   return safe || fallback;
 }
 
-export function bucketForProduct(scope: ProductScope) {
+/** @param {ProductScope} scope */
+export function bucketForProduct(scope) {
   return scope === 'phienchotrenmay'
     ? `${artemisStorageBucketPrefix}-marketplace-images`
     : `${artemisStorageBucketPrefix}-report-images`;
 }
 
-export function assertValidImageFile(file: File) {
-  if (!imageUploadLimits.allowedMimeTypes.includes(file.type as (typeof imageUploadLimits.allowedMimeTypes)[number])) {
+/** @param {File} file */
+export function assertValidImageFile(file) {
+  if (!imageUploadLimits.allowedMimeTypes.includes(/** @type {(typeof imageUploadLimits.allowedMimeTypes)[number]} */ (file.type))) {
     throw error(400, 'Ảnh cần là JPEG, PNG, WebP hoặc GIF.');
   }
 
@@ -33,19 +38,22 @@ export function assertValidImageFile(file: File) {
   }
 }
 
-export async function uploadImageFromForm(
-  event: RequestEvent,
-  user: App.ArtemisUser,
-  scope: ProductScope,
-  recordId: string,
-  file: FormDataEntryValue | null
-): Promise<ImageMetadata | undefined> {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {App.ArtemisUser} user
+ * @param {ProductScope} scope
+ * @param {string} recordId
+ * @param {FormDataEntryValue | null} file
+ * @returns {Promise<ImageMetadata | undefined>}
+ */
+export async function uploadImageFromForm(event, user, scope, recordId, file) {
   if (!(file instanceof File) || file.size === 0) return undefined;
   assertValidImageFile(file);
 
   const bucket = bucketForProduct(scope);
   const path = `${user.id}/${recordId}/${Date.now()}-${sanitizeFileName(file.name)}`;
-  const metadata: ImageMetadata = {
+  /** @type {ImageMetadata} */
+  const metadata = {
     path,
     bucket,
     mimeType: file.type,
@@ -69,7 +77,11 @@ export async function uploadImageFromForm(
   return metadata;
 }
 
-export async function resolveImageUrl(event: RequestEvent, image?: ImageMetadata) {
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {ImageMetadata} [image]
+ */
+export async function resolveImageUrl(event, image) {
   if (!image) return undefined;
   if (image.url) return image.url;
   if (!hasSupabaseConfig()) return undefined;

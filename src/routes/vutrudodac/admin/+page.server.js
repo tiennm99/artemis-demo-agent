@@ -1,29 +1,36 @@
 import { fail } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
 import { requireAdmin } from '$lib/server/auth/admin-roles';
 import { assertSameOrigin } from '$lib/server/security/origin-check';
 import { listLostFoundAdmin, updateReportStatus } from '$lib/server/repositories/lost-found';
-import type { ReportStatus } from '$lib/shared/types/domain';
 
-const allowedStatuses = new Set<ReportStatus>(['open', 'matched', 'returned', 'closed', 'hidden']);
+/** @typedef {import('$lib/shared/types/domain').ReportStatus} ReportStatus */
 
-function readText(formData: FormData, key: string) {
+/** @type {Set<ReportStatus>} */
+const allowedStatuses = new Set(['open', 'matched', 'returned', 'closed', 'hidden']);
+
+/**
+ * @param {FormData} formData
+ * @param {string} key
+ */
+function readText(formData, key) {
   return String(formData.get(key) ?? '').trim();
 }
 
-export const load: PageServerLoad = async (event) => {
+/** @type {import('./$types').PageServerLoad} */
+export const load = async (event) => {
   await requireAdmin(event, 'vutrudodac');
   return listLostFoundAdmin(event);
 };
 
-export const actions: Actions = {
+/** @type {import('./$types').Actions} */
+export const actions = {
   setStatus: async (event) => {
     assertSameOrigin(event);
     const actor = await requireAdmin(event, 'vutrudodac');
     const formData = await event.request.formData();
     const id = readText(formData, 'id');
     const kind = readText(formData, 'kind');
-    const status = readText(formData, 'status') as ReportStatus;
+    const status = /** @type {ReportStatus} */ (readText(formData, 'status'));
 
     if (!id || (kind !== 'lost' && kind !== 'found') || !allowedStatuses.has(status)) {
       return fail(400, { message: 'Tín hiệu admin không hợp lệ.' });
